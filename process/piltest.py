@@ -21,7 +21,7 @@ draw = ImageDraw.Draw(new, 'RGBA')
 px = after.load()
 index = [[0 for y in range(after.height)] for x in range(after.width)]
 
-threshold = range(5, 256, 5)
+threshold = range(5, 256, 10)
 
 for i in range(len(threshold)):
 
@@ -111,14 +111,36 @@ for i in range(len(bbox)):
 
 # the one we care about
 
-draw.rectangle(
+new.close()
+
+before = Image.open('test_images/testbefore.png')
+after  = Image.open('test_images/testafter.png')
+
+ogdraw = ImageDraw.Draw(before, 'RGBA')
+afdraw = ImageDraw.Draw(after, 'RGBA')
+
+ogdraw.rectangle(
     bbox[len(bbox) / 2],
     outline = (
-        255,
-        255,
-        255,
+        0,
+        0,
+        0,
         255
     )
 )
 
-new.show()
+afdraw.rectangle(
+    bbox[len(bbox) / 2],
+    outline = (
+        0,
+        0,
+        0,
+        255
+    )
+)
+
+before.show()
+after.show()
+
+before.close()
+after.close()
