@@ -23,12 +23,12 @@ class BoundingBox(object):
             self.bounds = list(bounds)
 
         if self.bounds[0] > self.bounds[2]:
-            temp = bounds[0]
+            temp = self.bounds[0]
             self.bounds[0] = self.bounds[2]
             self.bounds[2] = temp
 
         if self.bounds[1] > self.bounds[3]:
-            temp = bounds[1]
+            temp = self.bounds[1]
             self.bounds[1] = self.bounds[3]
             self.bounds[3] = temp
 
@@ -73,10 +73,10 @@ class BoundingBox(object):
     ### comparison methods ###
 
     def __lt__(self, other):
-        return self.get_area < other.get_area
+        return self.get_area() < other.get_area()
 
     def __le__(self, other):
-        return self.get_area <= other.get_area or (self == other)
+        return self.get_area() <= other.get_area() or (self == other)
 
     def __eq__(self, other):
         sv = self.get_bounds()
@@ -93,10 +93,10 @@ class BoundingBox(object):
         return not self == other
 
     def __gt__(self, other):
-        return self.get_area > other.get_area
+        return self.get_area() > other.get_area()
 
     def __ge__(self, other):
-        return self.get_area >= other.get_area or (self == other)
+        return self.get_area() >= other.get_area() or (self == other)
 
     def __hash__(self):
         sv = self.get_bounds()
@@ -128,5 +128,5 @@ class BoundingBox(object):
 
 if __name__ == '__main__':
     bb = BoundingBox(0, 0, 10, 10)
-    print (5, 5) in bb
-    print (15, 15) in bb
+    bb2 = BoundingBox([0, 0, 10, 10])
+    print bb2.get_area()
