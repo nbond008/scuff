@@ -111,3 +111,22 @@ class BoundingBox(object):
     def __repr__(self):
         sv = self.get_bounds()
         return 'BoundingBox(bounds=[%d, %d, %d, %d])' % (sv[0], sv[1], sv[2], sv[3])
+
+    def __contains__(self, item):
+        try:
+            for i in item:
+                pass
+        except TypeError:
+            return False
+
+        sv = self.get_bounds()
+        try:
+            point = (item[0], item[1])
+            return item[0] >= sv[0] and item[1] >= sv[1] and item[0] < sv[2] and item[1] < sv[3]
+        except IndexError:
+            return False
+
+if __name__ == '__main__':
+    bb = BoundingBox(0, 0, 10, 10)
+    print (5, 5) in bb
+    print (15, 15) in bb
