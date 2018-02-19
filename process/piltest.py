@@ -36,14 +36,14 @@ for i in range(len(threshold)):
                 )
 
             if condition[x][y]:
-                draw.point(
-                    [x, y],
-                    fill = (
-                        int(abs(px[x, y][0] - stat[0])),
-                        int(abs(px[x, y][1] - stat[1])),
-                        int(abs(px[x, y][2] - stat[2])),
-                        int(threshold[len(threshold) - 1 - i] * 255 / len(threshold))
-                    ))
+                # draw.point(
+                #     [x, y],
+                #     fill = (
+                #         int(abs(px[x, y][0] - stat[0])),
+                #         int(abs(px[x, y][1] - stat[1])),
+                #         int(abs(px[x, y][2] - stat[2])),
+                #         int(threshold[len(threshold) - 1 - i] * 255 / len(threshold))
+                #     ))
                 index[x][y] += 1
 
 bbox = [[after.width, after.height, -1, -1] for i in range(len(threshold))]
@@ -98,17 +98,20 @@ for i in range(len(threshold)):
         if ex:
             break
 
+adraw = ImageDraw.Draw(after, 'RGBA')
+
 for i in range(len(bbox)):
-    draw.rectangle(
+    adraw.rectangle(
             bbox[i],
             outline = (
-                255,
-                255,
-                255,
+                0,
+                0,
+                0,
                 int(i * 255 / len(bbox))
             )
         )
 
-new.show()
+after.show()
 
+after.close()
 new.close()
