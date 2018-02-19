@@ -3,7 +3,7 @@ from sys import exit
 
 try:
     before = Image.open('test_images/testbefore.png')
-    after  = Image.open('test_images/testafter.png')
+    after  = Image.open('test_images/testafter2.png')
 except IOError:
     print 'run from the repo root'
     exit(0)
@@ -103,44 +103,12 @@ for i in range(len(bbox)):
             bbox[i],
             outline = (
                 255,
-                0,
-                0,
+                255,
+                255,
                 int(i * 255 / len(bbox))
             )
         )
 
-# the one we care about
+new.show()
 
 new.close()
-
-before = Image.open('test_images/testbefore.png')
-after  = Image.open('test_images/testafter.png')
-
-ogdraw = ImageDraw.Draw(before, 'RGBA')
-afdraw = ImageDraw.Draw(after, 'RGBA')
-
-ogdraw.rectangle(
-    bbox[len(bbox) / 2],
-    outline = (
-        0,
-        0,
-        0,
-        255
-    )
-)
-
-afdraw.rectangle(
-    bbox[len(bbox) / 2],
-    outline = (
-        0,
-        0,
-        0,
-        255
-    )
-)
-
-before.show()
-after.show()
-
-before.close()
-after.close()
