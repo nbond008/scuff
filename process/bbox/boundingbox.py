@@ -57,7 +57,6 @@ class BoundingBox(object):
     @staticmethod
     def combine(a, b):
         if a == b:
-            print 'nice'
             return a
 
         av = a.get_bounds()
@@ -125,8 +124,3 @@ class BoundingBox(object):
             return item[0] >= sv[0] and item[1] >= sv[1] and item[0] < sv[2] and item[1] < sv[3]
         except IndexError:
             return False
-
-if __name__ == '__main__':
-    bb = BoundingBox(0, 0, 10, 10)
-    bb2 = BoundingBox([0, 0, 10, 10])
-    print bb2.get_area()
