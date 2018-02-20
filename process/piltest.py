@@ -1,4 +1,5 @@
 from PIL import Image, ImageStat, ImageDraw, ImageColor
+from process.bbox import BoundingBox
 from sys import exit
 
 try:
@@ -21,7 +22,7 @@ draw = ImageDraw.Draw(new, 'RGBA')
 px = after.load()
 index = [[0 for y in range(after.height)] for x in range(after.width)]
 
-threshold = range(5, 256, 10)
+threshold = range(5, 256, 1)
 
 for i in range(len(threshold)):
 
@@ -46,16 +47,17 @@ for i in range(len(threshold)):
                 #     ))
                 index[x][y] += 1
 
-bbox = [[after.width, after.height, -1, -1] for i in range(len(threshold))]
+bbox = [None for i in range(len(threshold))]
 margin = 12
 
 for i in range(len(threshold)):
+    bounds = [after.width, after.height, -1, -1]
     ex = False
 
     for x in range(1, after.width - 1):
         for y in range(1, after.height - 1):
             if index[x][y] <= i:
-                bbox[i][0] = x - margin
+                bounds[0] = x - margin
             else:
                 ex = True
                 break
@@ -67,7 +69,7 @@ for i in range(len(threshold)):
     for y in range(1, after.height - 1):
         for x in range(1, after.width - 1):
             if index[x][y] <= i:
-                bbox[i][1] = y - margin
+                bounds[1] = y - margin
             else:
                 ex = True
                 break
@@ -79,7 +81,7 @@ for i in range(len(threshold)):
     for x in reversed(range(1, after.width - 1)):
         for y in reversed(range(1, after.height - 1)):
             if index[x][y] <= i:
-                bbox[i][2] = x + margin
+                bounds[2] = x + margin
             else:
                 ex = True
                 break
@@ -91,18 +93,20 @@ for i in range(len(threshold)):
     for y in reversed(range(1, after.height - 1)):
         for x in reversed(range(1, after.width - 1)):
             if index[x][y] <= i:
-                bbox[i][3] = y + margin
+                bounds[3] = y + margin
             else:
                 ex = True
                 break
         if ex:
             break
 
+    bbox[i] = BoundingBox(bounds)
+
 adraw = ImageDraw.Draw(after, 'RGBA')
 
 for i in range(len(bbox)):
     adraw.rectangle(
-            bbox[i],
+            bbox[i].get_bounds(),
             outline = (
                 0,
                 0,
@@ -110,6 +114,31 @@ for i in range(len(bbox)):
                 int(i * 255 / len(bbox))
             )
         )
+
+final = 0
+
+prev = BoundingBox([after.width, after.height, -1, -1])
+prevdiff = 0
+
+for i in range(len(bbox)):
+    diff = bbox[i].get_area() - prev.get_area()
+    if BoundingBox.combine(prev, bbox[i]) == prev:
+        prev = bbox[i]
+        if (prevdiff - diff) > 0:
+            final = i
+        prevdiff = diff
+
+# here's the box we care about
+
+adraw.rectangle(
+    bbox[final].get_bounds(),
+    outline = (
+        255,
+        0,
+        0,
+        255
+    )
+)
 
 after.show()
 
