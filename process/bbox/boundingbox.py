@@ -72,6 +72,19 @@ class BoundingBox(object):
             self.set_bounds(sv)
             return False
 
+    # translate
+    # inputs:  the distance along x to translate
+    #          the distance along y to translate
+    # outputs: none
+    def translate(self, x, y):
+        sv = self.get_bounds()
+        self.set_bounds(
+            sv[0] + x,
+            sv[1] + y,
+            sv[2] + x,
+            sv[3] + y
+        )
+
     ### static methods ###
 
     # combine
