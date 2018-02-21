@@ -49,6 +49,29 @@ class BoundingBox(object):
     def get_area(self):
         return self.area
 
+    # expand
+    # inputs:  the margin to be added
+    #          the edges to which the margin will be added
+    # outputs: whether the operation is successful
+    def expand(self, margin, sides = 'nsew'):
+        sv = self.get_bounds()
+        nv = list(sv)
+        try:
+            for side in list(sides):
+                if side is 'n' or side is 'N':
+                    nv[1] = sv[1] - margin
+                if side is 's' or side is 'S':
+                    nv[3] = sv[3] + margin
+                if side is 'e' or side is 'E':
+                    nv[0] = sv[0] - margin
+                if side is 'w' or side is 'W':
+                    nv[2] = sv[2] + margin
+            self.set_bounds(nv)
+            return True
+        except AttributeError:
+            self.set_bounds(sv)
+            return False
+
     ### static methods ###
 
     # combine
