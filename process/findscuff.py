@@ -11,13 +11,13 @@ def get_rms(a, b):
     return math.sqrt(s)
 
 def get_bbox(cond, margin): #there's gotta be a better way to do this
-    bounds = [len(cond) + 1, len(cond[0]) + 1, -1, -1]
+    bounds = [len(cond) - margin - 1, len(cond[0]) - margin - 1, margin, margin]
     ex = False
 
     for x in range(len(cond)):
         for y in range(len(cond[0])):
             if not cond[x][y]:
-                bounds[0] = max(0, x - margin)
+                bounds[0] = max(margin, x - margin)
             else:
                 ex = True
                 break
@@ -29,7 +29,7 @@ def get_bbox(cond, margin): #there's gotta be a better way to do this
     for y in range(len(cond[0])):
         for x in range(len(cond)):
             if not cond[x][y]:
-                bounds[1] = max(0, y - margin)
+                bounds[1] = max(margin, y - margin)
             else:
                 ex = True
                 break
@@ -41,7 +41,7 @@ def get_bbox(cond, margin): #there's gotta be a better way to do this
     for x in reversed(range(len(cond))):
         for y in reversed(range(len(cond[0]))):
             if not cond[x][y]:
-                bounds[2] = min(len(cond), x + margin)
+                bounds[2] = min(len(cond) - margin - 1, x + margin)
             else:
                 ex = True
                 break
@@ -53,7 +53,7 @@ def get_bbox(cond, margin): #there's gotta be a better way to do this
     for y in reversed(range(len(cond[0]))):
         for x in reversed(range(len(cond))):
             if not cond[x][y]:
-                bounds[3] = min(len(cond[0]), y + margin)
+                bounds[3] = min(len(cond[0]) - margin - 1, y + margin)
             else:
                 ex = True
                 break
@@ -79,7 +79,7 @@ def find_scuff(before, after, cutoff = 255, step = 5, margin = 5, prevbox = Boun
         prevbox = BoundingBox(1, 1, after.width - 1, after.height - 1)
 
     finalcutoff = 256
-    finalbox    = None
+    finalbox    = prevbox
 
     while cutoff > 0:
         prev_bound = prevbox.get_bounds()
@@ -100,6 +100,9 @@ def find_scuff(before, after, cutoff = 255, step = 5, margin = 5, prevbox = Boun
             finalbox = prevbox
             if stopping:
                 cutoff = -1
+
+        if showing:
+            print (currbox, cutoff)
 
         prevbox = currbox
         cutoff -= step
