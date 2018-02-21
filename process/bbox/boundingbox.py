@@ -78,12 +78,12 @@ class BoundingBox(object):
     # outputs: none
     def translate(self, x, y):
         sv = self.get_bounds()
-        self.set_bounds(
+        self.set_bounds([
             sv[0] + x,
             sv[1] + y,
             sv[2] + x,
             sv[3] + y
-        )
+        ])
 
     ### static methods ###
 
