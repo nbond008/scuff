@@ -1,6 +1,14 @@
 from PIL import Image, ImageStat, ImageDraw, ImageColor
 from process.bbox import BoundingBox
 from sys import exit, argv
+import math
+
+def get_rms(a, b):
+    s = 0
+    for i in range(min(len(a), len(b))):
+        s += math.pow(a[i] - b[i], 2)
+
+    return math.sqrt(s)
 
 def get_bbox(cond, margin): #there's gotta be a better way to do this
     bounds = [len(cond) + 1, len(cond[0]) + 1, -1, -1]
@@ -55,26 +63,19 @@ def get_bbox(cond, margin): #there's gotta be a better way to do this
     return BoundingBox(bounds)
 
 # a lot of parameters are user defined now
-def find_scuff(before_path, after_path, cutoff = 255, step = 5, margin = 5, prevbox = BoundingBox(-100000, -100000, 100000, 100000), showing = False, stopping = True):
-    try:
-        before = Image.open(before_path)
-        after  = Image.open(after_path) #these will be user-defined later
-    except IOError:
-        raise IOError('run from the repo root')
-
+# now takes images rather than paths!!
+def find_scuff(before, after, cutoff = 255, step = 5, margin = 5, prevbox = BoundingBox(-100000, -100000, 100000, 100000), showing = False, stopping = True):
     stat = ImageStat.Stat(before).rms #might have to test rms/mean/median
-    before.close()
+    # before.close()
 
     if after.size != before.size:
         raise IOError('images must be the same size')
-
-    new = Image.new('RGB', after.size)
 
     px = after.load() #ugh there's gotta be a better way than loading pixels
 
     cond = [[False for y in range(after.height)] for x in range(after.width)]
 
-    if BoundingBox.combine(prevbox, BoundingBox(1, 1, after.width - 1, after.height - 1)) != prevbox or prevbox > BoundingBox(1, 1, after.width - 1, after.height - 1):
+    if BoundingBox.combine(prevbox, BoundingBox(1, 1, after.width - 1, after.height - 1)) != BoundingBox.combine(prevbox, BoundingBox(1, 1, after.width - 1, after.height - 1)) or prevbox > BoundingBox(1, 1, after.width - 1, after.height - 1):
         prevbox = BoundingBox(1, 1, after.width - 1, after.height - 1)
 
     finalcutoff = 256
@@ -84,9 +85,7 @@ def find_scuff(before_path, after_path, cutoff = 255, step = 5, margin = 5, prev
         prev_bound = prevbox.get_bounds()
         for x in range(prev_bound[0] - 1, prev_bound[2] + 1):
             for y in range(prev_bound[1] - 1, prev_bound[3] + 1):
-                if (abs(px[x, y][0] - stat[0]) > cutoff
-                        and abs(px[x, y][1] - stat[1]) > cutoff
-                        and abs(px[x, y][2] - stat[2]) > cutoff):
+                if get_rms(px[x, y], stat) / 3 > cutoff:
                     cond[x][y] = True
 
         try:
