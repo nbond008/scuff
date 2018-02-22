@@ -5,19 +5,12 @@ from sys import exit
 from time import clock
 import math
 
-def get_rms(a, b):
-    s = 0
-    for i in range(min(len(a), len(b))):
-        s += math.pow(a[i] - b[i], 2)
-
-    return math.sqrt(s)
-
 start = float(clock())
 
 maxvalue = 10
 
 before = Image.open('test_images/testbefore.png')
-after = Image.open('test_images/testafter3.png')
+after = Image.open('test_images/testafter2.png')
 
 print 'starting first run. time elapsed since start: %ss' % (float(clock()) - float(start))
 
@@ -56,7 +49,7 @@ before = Image.open('test_images/testbefore.png')
 cropped_before = before.crop(box2[0].get_bounds())
 before.close()
 
-after2 = Image.open('test_images/testafter3.png')
+after2 = Image.open('test_images/testafter2.png')
 cropped_after = after2.crop(box2[0].get_bounds())
 after2.close()
 
@@ -70,9 +63,9 @@ print 'final cutoff: %0.1f' % box2[1]
 print 'before: [%3.3f, %3.3f, %3.3f]' % (rms_before[0], rms_before[1], rms_before[2])
 print 'after: [%3.3f, %3.3f, %3.3f]\n' % (rms_after[0], rms_after[1], rms_after[2])
 
-print '%f\n' % get_rms(rms_before, rms_after)
+print '%f\n' % findscuff.get_rms(rms_before, rms_after)
 
-if get_rms(rms_before, rms_after) < maxvalue:
+if findscuff.get_rms(rms_before, rms_after) < maxvalue:
     print 'no scuff detected\n'
     # after.show()
 else:
@@ -88,4 +81,4 @@ cropped_after.close()
 # find_scuff still needs some work, but for now we have a basic framework
 # that picks out the scuffed area, crops the image to fit it, and finally
 # checks against a (currently arbitrary) standard to guage whether the
-# area is large or visible enough to constitute a scuff. 
+# area is large or visible enough to constitute a scuff.
