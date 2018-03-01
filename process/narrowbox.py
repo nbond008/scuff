@@ -5,12 +5,15 @@ import numpy as np
 from sys import exit, argv
 from array import array
 import math
+from time import clock
 
 #dumb array transformations just to get it to look like the original image
 def list_to_arr(l):
-    return np.fliplr(np.flipud(np.array(l).transpose()))
+    return np.flipud(np.array(l).transpose())
 
 def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.csv'):
+    start = float(clock())
+    
     baseline = ImageStat.Stat(before).rms
 
     print baseline
@@ -112,16 +115,18 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
     pp.pcolormesh(
         list_to_arr(rd_del2)
     )
+
+    print 'elapsed time: %0.2fs' % (float(clock()) - start)
     pp.show()
 
     # testcsv = open()
 
 
 if __name__ == '__main__':
-    before = Image.open('test_images/testbefore.png')
-    after  = Image.open('test_images/testafter2.png')
+    before = Image.open('test_images/realbefore_cropped.jpg')
+    after  = Image.open('test_images/realafter_cropped.jpg')
 
-    grain = 25
+    grain = int(math.sqrt(after.width**2 + after.height**2)) / 100
 
     try:
         if argv[1]:
