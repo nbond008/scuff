@@ -11,9 +11,12 @@ from time import clock
 def list_to_arr(l):
     return np.flipud(np.array(l).transpose())
 
+def arr_to_list(a):
+    return np.flipud(a).transpose().tolist()
+
 def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.csv'):
     start = float(clock())
-    
+
     baseline = ImageStat.Stat(before).rms
 
     print baseline
@@ -48,13 +51,13 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
                 try:
                     avg = ImageStat.Stat(after, mask = mask).rms
 
-                    rd[i][j] = (avg[0] + avg[1] + avg[2]) / 3
+                    # rd[i][j] = (avg[0] + avg[1] + avg[2]) / 3
 
-                    # rd[i][j] = math.sqrt(
-                    #                 math.pow(avg[0] - baseline[0], 2)
-                    #                 + math.pow(avg[1] - baseline[1], 2)
-                    #                 + math.pow(avg[2] - baseline[2], 2)
-                    #             )
+                    rd[i][j] = math.sqrt(
+                                    math.pow(avg[0] - baseline[0], 2)
+                                    + math.pow(avg[1] - baseline[1], 2)
+                                    + math.pow(avg[2] - baseline[2], 2)
+                                )
                 except ZeroDivisionError:
                     print 'i = %d, j = %d' % (i, j)
             except AttributeError:
@@ -88,13 +91,63 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
 
     # d^2(rd)/dxdy
     for i in range(1, len(grid) - 1):
-        for j in range(len(grid[0]) - 2):
-            drd = (rd_dy[i + 1][j] - rd_dy[i - 1][j])
+        for j in range(1, len(grid[0]) - 1):
+            drdy = (rd_dy[i + 1][j - 1] - rd_dy[i - 1][j - 1])
+            drdx = (rd_dx[i - 1][j + 1] - rd_dx[i - 1][j - 1])
 
             try:
-                rd_del2[i - 1][j] = drd / dx
+                rd_del2[i - 1][j - 1] = (drdy / dx + drdx / dy) / 2
             except IndexError:
                 print 'i = %d, j = %d' % (i, j)
+
+    maxdx = np.unravel_index(
+        np.argmax(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
+        list_to_arr(np.flipud(rd_dx).transpose()).shape
+    )
+
+    mindx = np.unravel_index(
+        np.argmin(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
+        list_to_arr(np.flipud(rd_dx).transpose()).shape
+    )
+
+    maxdy = np.unravel_index(
+        np.argmax(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
+        list_to_arr(np.flipud(rd_dy).transpose()).shape
+    )
+
+    mindy = np.unravel_index(
+        np.argmin(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
+        list_to_arr(np.flipud(rd_dy).transpose()).shape
+    )
+
+    print '%s : %s : %s : %s' % (maxdx, mindx, maxdy, mindy)
+
+    deriv_max_dx = BoundingBox(
+        mindx[0] * grain,
+        mindx[1] * grain,
+        maxdx[0] * grain,
+        maxdx[1] * grain
+    )
+
+    deriv_max_dy = BoundingBox(
+        mindy[0] * grain,
+        mindy[1] * grain,
+        maxdy[0] * grain,
+        maxdy[1] * grain
+    )
+
+    deriv_max = BoundingBox.combine(deriv_max_dx, deriv_max_dy)
+    deriv_max.expand(grain, 'nesw')
+
+    print deriv_max.get_bounds()
+
+    cropped = after.crop(deriv_max.get_bounds())
+    cropped.show()
+
+    # rd on a log scale
+    # for i in range(len(grid)):
+    #     for j in range(len(grid[0])):
+    #         rd[i][j] = math.pow(2, rd[i][j])
 
     pp.figure(1)
     pp.pcolormesh(
@@ -118,6 +171,8 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
 
     print 'elapsed time: %0.2fs' % (float(clock()) - start)
     pp.show()
+
+
 
     # testcsv = open()
 
