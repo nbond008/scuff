@@ -120,24 +120,22 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
         list_to_arr(np.flipud(rd_dy).transpose()).shape
     )
 
-    print '%s : %s : %s : %s' % (maxdx, mindx, maxdy, mindy)
-
     deriv_max_dx = BoundingBox(
-        mindx[0] * grain,
-        mindx[1] * grain,
-        maxdx[0] * grain,
-        maxdx[1] * grain
+        max((mindx[0] - 2) * grain, 0),
+        max((mindx[1] - 2) * grain, 0),
+        min((maxdx[0] + 2) * grain, after.width),
+        min((maxdx[1] + 2) * grain, after.height)
     )
 
     deriv_max_dy = BoundingBox(
-        mindy[0] * grain,
-        mindy[1] * grain,
-        maxdy[0] * grain,
-        maxdy[1] * grain
+        max((mindy[0] - 2) * grain, 0),
+        max((mindy[1] - 2) * grain, 0),
+        min((maxdy[0] + 2) * grain, after.width),
+        min((maxdy[1] + 2) * grain, after.height)
     )
 
     deriv_max = BoundingBox.combine(deriv_max_dx, deriv_max_dy)
-    deriv_max.expand(grain, 'nesw')
+    # deriv_max.expand(grain, 'es')
 
     print deriv_max.get_bounds()
 
@@ -170,6 +168,14 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
     )
 
     print 'elapsed time: %0.2fs' % (float(clock()) - start)
+
+    print 'max d(rd)/dx = %0.3f\nmin d(rd)/dx = %0.3f\nmax d(rd)/dy = %0.3f\nmin d(rd)/dy = %0.3f' % (
+        list_to_arr(np.flipud(rd_dx).transpose())[maxdx],
+        list_to_arr(np.flipud(rd_dx).transpose())[mindx],
+        list_to_arr(np.flipud(rd_dy).transpose())[maxdy],
+        list_to_arr(np.flipud(rd_dy).transpose())[mindy]
+    )
+
     pp.show()
 
 
@@ -178,17 +184,21 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
 
 
 if __name__ == '__main__':
-    before = Image.open('test_images/realbefore_cropped.jpg')
-    after  = Image.open('test_images/realafter_cropped.jpg')
+    before = Image.open('test_images/testbefore.png')
+    after  = Image.open('test_images/testafter3.png')
 
     grain = int(math.sqrt(after.width**2 + after.height**2)) / 100
+    comment = ' (default)'
 
     try:
         if argv[1]:
             grain = int(argv[1])
-    except IndexError, ValueError:
-        pass
+            comment = ''
+    except IndexError:
+        comment = ' (default - input error)'
+    except ValueError:
+        comment = ' (default - value error)'
 
-    print 'grain = %d' % grain
+    print 'grain = %d%s' % (grain, comment)
 
     find_scuff(before, after, grain)
