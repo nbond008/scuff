@@ -14,15 +14,27 @@ def list_to_arr(l):
 def arr_to_list(a):
     return np.flipud(a).transpose().tolist()
 
-def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.csv'):
+def find_scuff(before, after, grain, showing = False):
+    outputs = dict()
+
     start = float(clock())
 
     baseline = ImageStat.Stat(before).rms
 
-    print baseline
+    grain = int(min(grain, min(after.width, after.height) / 2.5))
 
-    ith = int(bool(after.width % grain))
-    jth = int(bool(after.height % grain))
+    if showing:
+        print 'actual grain = %d' % grain
+        print baseline
+
+    outputs['grain'] = grain
+
+    try:
+        ith = int(bool(after.width % grain))
+        jth = int(bool(after.height % grain))
+    except ZeroDivisionError:
+        print 'grain size must be a positive integer.'
+        return  None
 
     grid = [[None for j in range(after.height / grain + jth)] for i in range(after.width / grain + ith)]
 
@@ -63,11 +75,6 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
             except AttributeError:
                 pass
 
-            # print rd[i][j]
-
-    # newimg = Image.fromarray(np.array(rd).transpose())
-    # newimg.show()
-
     rd_dx   = [[0.0 for j in range(len(grid[0]))] for i in range(len(grid) - 2)]
     rd_dy   = [[0.0 for j in range(len(grid[0]) - 2)] for i in range(len(grid))]
     rd_del2 = [[0.0 for j in range(len(grid[0]) - 2)] for i in range(len(grid) - 2)]
@@ -100,25 +107,40 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
             except IndexError:
                 print 'i = %d, j = %d' % (i, j)
 
-    maxdx = np.unravel_index(
-        np.argmax(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
-        list_to_arr(np.flipud(rd_dx).transpose()).shape
-    )
+    try:
+        maxrd = np.unravel_index(
+            np.argmax(list_to_arr(np.flipud(rd).transpose()), axis=None),
+            list_to_arr(np.flipud(rd).transpose()).shape
+        )
 
-    mindx = np.unravel_index(
-        np.argmin(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
-        list_to_arr(np.flipud(rd_dx).transpose()).shape
-    )
+        minrd = np.unravel_index(
+            np.argmin(list_to_arr(np.flipud(rd).transpose()), axis=None),
+            list_to_arr(np.flipud(rd).transpose()).shape
+        )
 
-    maxdy = np.unravel_index(
-        np.argmax(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
-        list_to_arr(np.flipud(rd_dy).transpose()).shape
-    )
+        maxdx = np.unravel_index(
+            np.argmax(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
+            list_to_arr(np.flipud(rd_dx).transpose()).shape
+        )
 
-    mindy = np.unravel_index(
-        np.argmin(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
-        list_to_arr(np.flipud(rd_dy).transpose()).shape
-    )
+        mindx = np.unravel_index(
+            np.argmin(list_to_arr(np.flipud(rd_dx).transpose()), axis=None),
+            list_to_arr(np.flipud(rd_dx).transpose()).shape
+        )
+
+        maxdy = np.unravel_index(
+            np.argmax(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
+            list_to_arr(np.flipud(rd_dy).transpose()).shape
+        )
+
+        mindy = np.unravel_index(
+            np.argmin(list_to_arr(np.flipud(rd_dy).transpose()), axis=None),
+            list_to_arr(np.flipud(rd_dy).transpose()).shape
+        )
+
+    except ValueError:
+        print 'grain size must be a positive integer.'
+        return None
 
     deriv_max_dx = BoundingBox(
         max((mindx[0] - 2) * grain, 0),
@@ -137,51 +159,55 @@ def find_scuff(before, after, grain, testpath = '/Users/nickbond/Desktop/test.cs
     deriv_max = BoundingBox.combine(deriv_max_dx, deriv_max_dy)
     # deriv_max.expand(grain, 'es')
 
-    print deriv_max.get_bounds()
+    # print deriv_max.get_bounds()
 
-    cropped = after.crop(deriv_max.get_bounds())
-    cropped.show()
+    outputs['boundingbox'] = deriv_max
 
     # rd on a log scale
     # for i in range(len(grid)):
     #     for j in range(len(grid[0])):
     #         rd[i][j] = math.pow(2, rd[i][j])
 
-    pp.figure(1)
-    pp.pcolormesh(
-        list_to_arr(rd)
-    )
+    # pp.figure(1)
+    # pp.pcolormesh(
+    #     list_to_arr(rd)
+    # )
+    #
+    # pp.figure(2)
+    # pp.pcolormesh(
+    #     list_to_arr(rd_dx)
+    # )
+    #
+    # pp.figure(3)
+    # pp.pcolormesh(
+    #     list_to_arr(rd_dy)
+    # )
+    #
+    # pp.figure(4)
+    # pp.pcolormesh(
+    #     list_to_arr(rd_del2)
+    # )
 
-    pp.figure(2)
-    pp.pcolormesh(
-        list_to_arr(rd_dx)
-    )
+    if showing:
+        print 'elapsed time: %0.2fs' % (float(clock()) - start)
 
-    pp.figure(3)
-    pp.pcolormesh(
-        list_to_arr(rd_dy)
-    )
+    outputs['data'] = {
+        'rd'      : list_to_arr(rd),
+        'rd_dx'   : list_to_arr(rd_dx),
+        'rd_dy'   : list_to_arr(rd_dy),
+        'rd_del2' : list_to_arr(rd_del2)
+    }
 
-    pp.figure(4)
-    pp.pcolormesh(
-        list_to_arr(rd_del2)
-    )
+    outputs['extrema'] = {
+        'max_rd' : list_to_arr(np.flipud(rd).transpose())[maxrd],
+        'min_rd' : list_to_arr(np.flipud(rd).transpose())[minrd],
+        'max_dx' : list_to_arr(np.flipud(rd_dx).transpose())[maxdx],
+        'min_dx' : list_to_arr(np.flipud(rd_dx).transpose())[mindx],
+        'max_dy' : list_to_arr(np.flipud(rd_dy).transpose())[maxdy],
+        'min_dy' : list_to_arr(np.flipud(rd_dy).transpose())[mindy]
+    }
 
-    print 'elapsed time: %0.2fs' % (float(clock()) - start)
-
-    print 'max d(rd)/dx = %0.3f\nmin d(rd)/dx = %0.3f\nmax d(rd)/dy = %0.3f\nmin d(rd)/dy = %0.3f' % (
-        list_to_arr(np.flipud(rd_dx).transpose())[maxdx],
-        list_to_arr(np.flipud(rd_dx).transpose())[mindx],
-        list_to_arr(np.flipud(rd_dy).transpose())[maxdy],
-        list_to_arr(np.flipud(rd_dy).transpose())[mindy]
-    )
-
-    pp.show()
-
-
-
-    # testcsv = open()
-
+    return outputs
 
 if __name__ == '__main__':
     before = Image.open('test_images/testbefore.png')
@@ -195,10 +221,34 @@ if __name__ == '__main__':
             grain = int(argv[1])
             comment = ''
     except IndexError:
-        comment = ' (default - input error)'
+        pass
     except ValueError:
         comment = ' (default - value error)'
 
     print 'grain = %d%s' % (grain, comment)
 
-    find_scuff(before, after, grain)
+    data = find_scuff(before, after, grain)
+
+    try:
+        print '\nlist of keys:'
+        for key in data:
+            print key
+    except TypeError:
+        print '(none)'
+        exit(0)
+
+    cropped = after.crop(data['boundingbox'].get_bounds())
+    cropped.show()
+
+    print 'actual grain = %d' % data['grain']
+
+    i = 0
+    for arr in data['data']:
+        pp.figure(i)
+        pp.title(arr)
+        pp.pcolormesh(data['data'][arr])
+        i += 1
+
+    pp.show()
+
+    # print '\nmax rd = %0.3f\nmin rd = %0.3f\nmax d(rd)/dx = %0.3f\nmin d(rd)/dx = %0.3f\nmax d(rd)/dy = %0.3f\nmin d(rd)/dy = %0.3f' % (
