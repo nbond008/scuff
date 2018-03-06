@@ -1,0 +1,163 @@
+import Tkinter as tk
+import tkFileDialog
+import ttk
+from PIL import Image, ImageTk
+
+# Scuff Finder Desktop
+
+# Authors:
+#   Nick Bond and Gabe Waksman
+
+# Version:
+#   0.1
+
+# Written for Shaw Industries Group, Inc. Plant RP Quality Control
+# Part of a Georgia Tech 2018 MSE Capstone II project
+
+class Application_SFD(tk.Frame):
+    im_before = None
+    im_after  = None
+
+    photo_before = None
+    photo_after  = None
+
+    real_before = None
+    real_after  = None
+
+    size = (240, 180)
+
+    def __init__(self, master = None):
+        tk.Frame.__init__(self, master)
+        self.master.title('Scuff Finder Desktop')
+        self.grid()
+        self.populate()
+
+    def populate(self):
+        tabs = ttk.Notebook(self)
+        tab_indiv = tk.Frame(self)
+        tab_stats = tk.Frame(self)
+
+        tabs.add(tab_indiv, text = 'Individual Samples')
+        tabs.add(tab_stats, text = 'Scuff Statistics')
+
+        tabs.grid(row = 0, column = 0, sticky = tk.N)
+
+        ##### individual images
+
+        frame_before  = tk.Frame(tab_indiv)
+        frame_after   = tk.Frame(tab_indiv)
+        # frame_arrow   = tk.Frame(tab_indiv)
+        frame_buttons = tk.Frame(tab_indiv)
+
+        ###
+
+        label_before = tk.Label(frame_before, text = 'Before')
+        label_before.grid(row = 0, pady = 5, sticky = tk.N)
+
+        self.photo_before = ImageTk.PhotoImage(Image.new('L', self.size))
+        self.image_before = tk.Label(frame_before, image = self.photo_before)
+
+        self.image_before.image = self.photo_before
+
+        self.image_before.bind('<Button-1>', self.get_before_image)
+        self.image_before.grid(row = 1, pady = 5, sticky = tk.S)
+
+        ###
+
+        label_after = tk.Label(frame_after, text = 'After')
+        label_after.grid(row = 0, pady = 5, sticky = tk.N)
+
+        self.photo_after = ImageTk.PhotoImage(Image.new('L', self.size))
+        self.image_after = tk.Label(frame_after, image = self.photo_after)
+
+        self.image_after.image = self.photo_after
+
+        self.image_after.bind('<Button-1>', self.get_after_image)
+        self.image_after.grid(row = 1, pady = 5, sticky = tk.S)
+
+        ###
+
+        button_indiv_test = tk.Button(
+            frame_buttons,
+            text    = 'Test',
+            command = self.indiv_test
+        )
+
+        button_indiv_quit = tk.Button(
+            frame_buttons,
+            text    = 'Quit',
+            command = self.quit
+        )
+
+        button_indiv_test.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = tk.W)
+        button_indiv_quit.grid(row = 0, column = 2, padx = 10, pady = 10, sticky = tk.E)
+
+        frame_before.grid(
+            row = 0,
+            column = 0,
+            padx = 5,
+            pady = 5,
+            sticky = tk.W
+        )
+
+        frame_after.grid(
+            row = 0,
+            column = 2,
+            padx = 5,
+            pady = 5,
+            sticky = tk.E
+        )
+
+        # frame_arrow.grid(
+        #     row = 0,
+        #     column = 1,
+        #     padx = 5,
+        #     pady = 100
+        # )
+
+        frame_buttons.grid(
+            row = 1,
+            column = 0,
+            columnspan = 3,
+            padx = 5,
+            pady = 5,
+            sticky = tk.S
+        )
+
+    def get_before_image(self, event):
+        im_file = tkFileDialog.askopenfile()
+        try:
+            self.im_before = Image.open(im_file.name)
+            self.im_before.thumbnail(self.size)
+
+            self.real_after = Image.open(im_file.name)
+            im_file.close()
+        except AttributeError:
+            return None
+
+        self.photo_before = ImageTk.PhotoImage(self.im_before)
+        self.image_before.config(image = self.photo_before)
+        self.image_before.image = self.photo_before
+
+    def get_after_image(self, event):
+        im_file = tkFileDialog.askopenfile()
+        try:
+            self.im_after = Image.open(im_file.name)
+            self.im_after.thumbnail(self.size)
+
+            self.real_after = Image.open(im_file.name)
+            im_file.close()
+        except AttributeError:
+            return None
+
+        self.photo_after = ImageTk.PhotoImage(self.im_after)
+        self.image_after.config(image = self.photo_after)
+        self.image_after.image = self.photo_after
+
+    def indiv_test(self):
+        self.real_before.show()
+        self.real_after.show()
+
+if __name__ == '__main__':
+    app = Application_SFD()
+    app.mainloop()
