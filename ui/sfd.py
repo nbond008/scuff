@@ -2,6 +2,7 @@ import Tkinter as tk
 import tkFileDialog
 import ttk
 from PIL import Image, ImageTk
+import matplotlib as pp
 
 # Scuff Finder Desktop
 
@@ -21,8 +22,8 @@ class Application_SFD(tk.Frame):
     photo_before = None
     photo_after  = None
 
-    real_before = None
-    real_after  = None
+    real_before = ''
+    real_after  = ''
 
     size = (240, 180)
 
@@ -124,13 +125,16 @@ class Application_SFD(tk.Frame):
             sticky = tk.S
         )
 
+        # frame_before.grid_propagate(0)
+        # frame_after.grid_propagate(0)
+
     def get_before_image(self, event):
         im_file = tkFileDialog.askopenfile()
         try:
             self.im_before = Image.open(im_file.name)
             self.im_before.thumbnail(self.size)
 
-            self.real_after = Image.open(im_file.name)
+            self.real_before = im_file.name
             im_file.close()
         except AttributeError:
             return None
@@ -145,7 +149,7 @@ class Application_SFD(tk.Frame):
             self.im_after = Image.open(im_file.name)
             self.im_after.thumbnail(self.size)
 
-            self.real_after = Image.open(im_file.name)
+            self.real_after = im_file.name
             im_file.close()
         except AttributeError:
             return None
@@ -155,8 +159,32 @@ class Application_SFD(tk.Frame):
         self.image_after.image = self.photo_after
 
     def indiv_test(self):
-        self.real_before.show()
-        self.real_after.show()
+        try:
+            before = Image.open(self.real_before)
+            print 'before path: \"%s\"' % self.real_before
+        except AttributeError:
+            before = Image.new('L', self.size)
+            print 'no before image found.'
+
+        try:
+            after = Image.open(self.real_after)
+            print 'after path: \"%s\"' % self.real_before
+        except AttributeError:
+            after = Image.new('L', self.size)
+            print 'no after image found.'
+
+        try:
+            data = find_scuff(before, after, 8)
+            try:
+                pp.figure(1)
+                pp.pcolormesh(data['data']['rd'])
+                pp.show()
+            except AttributeError:
+                print 'find_scuff failure.'
+                return None
+        except NameError:
+            print 'narrowbox not installed.'
+            return None
 
 if __name__ == '__main__':
     app = Application_SFD()
