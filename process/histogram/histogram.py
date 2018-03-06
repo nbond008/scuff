@@ -18,7 +18,7 @@ def pxsquish(phist):
 	return [rout, gout, bout]
 
 
-scuffed = Image.open("test_images/testafter.png")
+scuffed = Image.open("test_images/sprayscuff.png")
 scuffhist = scuffed.histogram() # 768-element list of [number of pixels with R=0, #px with R=1, ... R=255, G = 0,...G=255, B=0....]
 clean = Image.open("test_images/testbefore.png")
 cleanhist = clean.histogram() # generate an identical list for the clean image
@@ -54,6 +54,5 @@ rmhdist = (sum([((rgbclean[i] - rgbscuff[i])**0.5) for i in range(0, 3)]))**(2)/
 print rmsdist, rmcdist, rmhdist
 #need to establish a value that actually represents a scuff
 
-print pxsquish(cleanhist)
 
 
