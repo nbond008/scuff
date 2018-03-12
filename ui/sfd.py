@@ -1,7 +1,7 @@
 import Tkinter as tk
 import tkFileDialog
 import ttk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import matplotlib as pp
 
 # Scuff Finder Desktop
@@ -37,9 +37,11 @@ class Application_SFD(tk.Frame):
         tabs = ttk.Notebook(self)
         tab_indiv = tk.Frame(self)
         tab_stats = tk.Frame(self)
+        tab_help  = tk.Frame(self)
 
         tabs.add(tab_indiv, text = 'Individual Samples')
-        tabs.add(tab_stats, text = 'Scuff Statistics')
+        # tabs.add(tab_stats, text = 'Scuff Statistics')
+        tabs.add(tab_help, text = 'Help')
 
         tabs.grid(row = 0, column = 0, sticky = tk.N)
 
@@ -55,26 +57,44 @@ class Application_SFD(tk.Frame):
         label_before = tk.Label(frame_before, text = 'Before')
         label_before.grid(row = 0, pady = 5, sticky = tk.N)
 
-        self.photo_before = ImageTk.PhotoImage(Image.new('L', self.size))
-        self.image_before = tk.Label(frame_before, image = self.photo_before)
+        back = Image.new('L', self.size)
 
-        self.image_before.image = self.photo_before
+        back_draw = ImageDraw.Draw(back)
+        back_draw.multiline_text(
+            (self.size[0] / 2 - 55, self.size[1] / 2 - 5),
+            'Click to add image...',
+            fill  = 255,
+            align = 'center'
+        )
+
+        photo_background = ImageTk.PhotoImage(back)
+
+        back_before = tk.Label(frame_before, image = photo_background)
+        back_before.image = photo_background
+
+        back_before.bind('<Button-1>', self.get_before_image)
+        back_before.grid(row = 1, pady = 5, sticky = tk.S)
+
+        self.image_before = tk.Label(frame_before, image = photo_background)
 
         self.image_before.bind('<Button-1>', self.get_before_image)
-        self.image_before.grid(row = 1, pady = 5, sticky = tk.S)
+        self.image_before.grid(row = 1, pady = 5, sticky = tk.W)
 
         ###
 
         label_after = tk.Label(frame_after, text = 'After')
         label_after.grid(row = 0, pady = 5, sticky = tk.N)
 
-        self.photo_after = ImageTk.PhotoImage(Image.new('L', self.size))
-        self.image_after = tk.Label(frame_after, image = self.photo_after)
+        back_after = tk.Label(frame_after, image = photo_background)
+        back_after.image = photo_background
 
-        self.image_after.image = self.photo_after
+        back_after.bind('<Button-1>', self.get_after_image)
+        back_after.grid(row = 1, pady = 5, sticky = tk.S)
+
+        self.image_after = tk.Label(frame_after, image = photo_background)
 
         self.image_after.bind('<Button-1>', self.get_after_image)
-        self.image_after.grid(row = 1, pady = 5, sticky = tk.S)
+        self.image_after.grid(row = 1, pady = 5, sticky = tk.E)
 
         ###
 
@@ -168,7 +188,7 @@ class Application_SFD(tk.Frame):
 
         try:
             after = Image.open(self.real_after)
-            print 'after path: \"%s\"' % self.real_before
+            print 'after path: \"%s\"' % self.real_after
         except AttributeError:
             after = Image.new('L', self.size)
             print 'no after image found.'
