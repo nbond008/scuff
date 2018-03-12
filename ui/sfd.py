@@ -27,6 +27,13 @@ class Application_SFD(tk.Frame):
 
     size = (240, 180)
 
+    help_docs = '''
+    Scuff Finder Desktop Help
+        1. Click on the current image to bring up the file selection dialog
+        2. After selecting both images, click the Test button to analyze
+            the images
+'''
+
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
         self.master.title('Scuff Finder Desktop')
@@ -147,6 +154,26 @@ class Application_SFD(tk.Frame):
 
         # frame_before.grid_propagate(0)
         # frame_after.grid_propagate(0)
+
+        ##### Help
+
+        frame_help = tk.Frame(tab_help)
+
+        label_help = tk.Label(
+            frame_help,
+            text = self.help_docs,
+            justify = tk.LEFT
+        )
+
+        label_help.grid(row = 0, pady = 5, sticky = tk.W)
+
+        frame_help.grid(
+            row = 0,
+            column = 2,
+            padx = 5,
+            pady = 5,
+            sticky = tk.E
+        )
 
     def get_before_image(self, event):
         im_file = tkFileDialog.askopenfile()
