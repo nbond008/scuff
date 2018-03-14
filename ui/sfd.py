@@ -353,8 +353,8 @@ class Window_Stats(tk.Frame):
             if not self.data['extrema']:
                 data_string += 'No extrema found.'
             else:
-                data_string += 'Maximum: %s\n' % self.data['extrema']['max_rd']
-                data_string += 'Minimum: %s\n' % self.data['extrema']['min_rd']
+                data_string += 'Maximum: %0.3f\n' % self.data['extrema']['max_rd']
+                data_string += 'Minimum: %0.3f\n' % self.data['extrema']['min_rd']
         except TypeError:
             data_string += 'No extrema found.'
         except KeyError:
