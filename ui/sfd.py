@@ -3,7 +3,9 @@ import tkFileDialog
 import tkMessageBox
 import ttk
 from PIL import Image, ImageTk, ImageDraw
-import matplotlib as pp
+import matplotlib.pyplot as pp
+
+from process.bbox import BoundingBox
 
 # Scuff Finder Desktop
 
@@ -257,8 +259,20 @@ class Application_SFD(tk.Frame):
         print 'grain: %d' % self.grain.get()
 
         try:
-            data = find_scuff(before, after, self.grain.get())
+            data = {
+                'grain'       : 8,
+                'boundingbox' : BoundingBox(0, 0, 10, 10),
+                'extrema'     : None,
+                'data'        : {
+                    'rd' : None
+                }
+            }
+            # data = find_scuff(before, after, self.grain.get())
             try:
+                top = tk.Toplevel(self)
+                stats = Window_Stats(top)
+                stats.set_data(data)
+
                 pp.figure(1)
                 pp.pcolormesh(data['data']['rd'])
                 pp.show()
@@ -268,6 +282,103 @@ class Application_SFD(tk.Frame):
         except NameError:
             print 'narrowbox not installed.'
             return None
+
+class Window_Stats(tk.Frame):
+    ti   = 'Scuff Statistics'
+    data = None
+
+    def __init__(self, master = None):
+        tk.Frame.__init__(self, master)
+        self.master.title(self.ti)
+        self.grid()
+        self.populate()
+
+    def populate(self):
+        self.data_stringvar = tk.StringVar()
+
+        frame_stats   = tk.Frame(self)
+        frame_buttons = tk.Frame(self)
+
+        ###
+
+        label_data = tk.Label(
+            frame_stats,
+            justify      = 'left',
+            textvariable = self.data_stringvar
+        )
+
+        label_data.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = tk.W)
+
+        ###
+
+        button_export = tk.Button(
+            frame_buttons,
+            text    = 'Export',
+            command = self.export
+        )
+
+        button_quit = tk.Button(
+            frame_buttons,
+            text    = 'OK',
+            command = self.master.destroy
+        )
+
+        button_export.grid(row = 0, column = 1, padx = 50, pady = 10, sticky = tk.E)
+        button_quit.grid(row = 0, column = 0, padx = 50, pady = 10, sticky = tk.E)
+
+        frame_stats.grid(
+            row = 0,
+            column = 0,
+            padx = 5,
+            pady = 5,
+            sticky = tk.W
+        )
+
+        frame_buttons.grid(
+            row = 2,
+            column = 0,
+            columnspan = 3,
+            padx = 5,
+            pady = 5,
+            sticky = tk.S
+        )
+
+    def set_data(self, data):
+        self.data = data
+
+        data_string = '\n'
+
+        try:
+            data_string += 'Extrema:\n'
+            for key in self.data['extrema']:
+                data_string += '%s: %s' % (key, self.data['extrema'][key])
+            if not self.data['extrema']:
+                data_string += 'No extrema found.'
+        except TypeError:
+            data_string += 'No extrema found.'
+        except KeyError:
+            data_string += 'No <extrema> key found.'
+
+        data_string += '\n\n'
+
+        try:
+            bbox = self.data['boundingbox']
+            data_string += 'Scuff size:\n%d pixels' % bbox.get_area()
+        except AttributeError:
+            print bbox
+
+        data_string += '\n\n'
+
+        try:
+            grain = self.data['grain']
+            data_string += 'Resolution:\n%d pixels' % grain
+        except AttributeError:
+            print grain
+
+        self.data_stringvar.set(data_string)
+
+    def export(self):
+        print self.data
 
 if __name__ == '__main__':
     app = Application_SFD()
