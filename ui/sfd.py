@@ -13,13 +13,18 @@ from process.narrowbox import find_scuff
 #   Nick Bond and Gabe Waksman
 
 # Version:
-#   0.11
+#   0.12
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
 
 # TODO: get rid of the <do not localize> windows (what is up with those??)
-# Include scuff statistics, maybe as an additional popup
+# Now it's giving me a weird error:
+'''
+    PyEval_RestoreThread: NULL tstate
+    Abort trap: 6
+'''
+# Look into this later??
 
 class Application_SFD(tk.Frame):
     im_before = None
@@ -264,6 +269,10 @@ class Application_SFD(tk.Frame):
         try:
             data = find_scuff(before, after, self.grain.get())
             try:
+                top = tk.Toplevel(self)
+                stats = Window_Stats(top)
+                stats.set_data(data)
+
                 pp.figure(1)
                 pp.pcolormesh(data['data']['rd'])
                 pp.show()
@@ -275,6 +284,104 @@ class Application_SFD(tk.Frame):
         except NameError:
             print 'narrowbox not installed.'
             return None
+
+class Window_Stats(tk.Frame):
+    ti   = 'Scuff Statistics'
+    data = None
+
+    def __init__(self, master = None):
+        tk.Frame.__init__(self, master)
+        self.master.title(self.ti)
+        self.grid()
+        self.populate()
+
+    def populate(self):
+        self.data_stringvar = tk.StringVar()
+
+        frame_stats   = tk.Frame(self)
+        frame_buttons = tk.Frame(self)
+
+        ###
+
+        label_data = tk.Label(
+            frame_stats,
+            justify      = 'left',
+            textvariable = self.data_stringvar
+        )
+
+        label_data.grid(row = 0, column = 0, padx = 5, pady = 5, sticky = tk.W)
+
+        ###
+
+        button_export = tk.Button(
+            frame_buttons,
+            text    = 'Export',
+            command = self.export
+        )
+
+        button_quit = tk.Button(
+            frame_buttons,
+            text    = 'OK',
+            command = self.master.destroy
+        )
+
+        button_export.grid(row = 0, column = 1, padx = 50, pady = 10, sticky = tk.E)
+        button_quit.grid(row = 0, column = 0, padx = 50, pady = 10, sticky = tk.E)
+
+        frame_stats.grid(
+            row = 0,
+            column = 0,
+            padx = 5,
+            pady = 5,
+            sticky = tk.W
+        )
+
+        frame_buttons.grid(
+            row = 2,
+            column = 0,
+            columnspan = 3,
+            padx = 5,
+            pady = 5,
+            sticky = tk.S
+        )
+
+    def set_data(self, data):
+        self.data = data
+
+        data_string = '\n'
+
+        try:
+            data_string += 'Extrema:\n'
+            if not self.data['extrema']:
+                data_string += 'No extrema found.'
+            else:
+                data_string += 'Maximum: %0.3f\n' % self.data['extrema']['max_rd']
+                data_string += 'Minimum: %0.3f\n' % self.data['extrema']['min_rd']
+        except TypeError:
+            data_string += 'No extrema found.'
+        except KeyError:
+            data_string += 'No <extrema> key found.'
+
+        data_string += '\n\n'
+
+        try:
+            bbox = self.data['boundingbox']
+            data_string += 'Scuff size:\n%d pixels' % bbox.get_area()
+        except AttributeError:
+            print bbox
+
+        data_string += '\n\n'
+
+        try:
+            grain = self.data['grain']
+            data_string += 'Resolution:\n%d pixels' % grain
+        except AttributeError:
+            print grain
+
+        self.data_stringvar.set(data_string)
+
+    def export(self):
+        print self.data
 
 if __name__ == '__main__':
     app = Application_SFD()
