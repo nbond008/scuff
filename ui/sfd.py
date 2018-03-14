@@ -1,5 +1,6 @@
 import Tkinter as tk
 import tkFileDialog
+import tkMessageBox
 import ttk
 from PIL import Image, ImageTk, ImageDraw
 import matplotlib as pp
@@ -25,18 +26,20 @@ class Application_SFD(tk.Frame):
     real_before = ''
     real_after  = ''
 
-    size = (240, 180)
+    size  = (240, 180)
+    ti = 'Scuff Finder Desktop'
 
     help_docs = '''
     Scuff Finder Desktop Help
-        1. Click on the current image to bring up the file selection dialog
-        2. After selecting both images, click the Test button to analyze
-            the images
+        1. Click on the current image to bring up the file selection dialog.
+        2. Select the resolution of the scuff map using the slider.
+        3. After selecting both images and a grain size, click the Test
+            button to analyze the images.
 '''
 
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
-        self.master.title('Scuff Finder Desktop')
+        self.master.title(self.ti)
         self.grid()
         self.populate()
 
@@ -56,12 +59,13 @@ class Application_SFD(tk.Frame):
 
         frame_before  = tk.Frame(tab_indiv)
         frame_after   = tk.Frame(tab_indiv)
+        frame_grain   = tk.Frame(tab_indiv)
         # frame_arrow   = tk.Frame(tab_indiv)
         frame_buttons = tk.Frame(tab_indiv)
 
         ###
 
-        label_before = tk.Label(frame_before, text = 'Before')
+        label_before = tk.Label(frame_before, text = 'Pre-Scuff Image')
         label_before.grid(row = 0, pady = 5, sticky = tk.N)
 
         back = Image.new('L', self.size)
@@ -85,11 +89,11 @@ class Application_SFD(tk.Frame):
         self.image_before = tk.Label(frame_before, image = photo_background)
 
         self.image_before.bind('<Button-1>', self.get_before_image)
-        self.image_before.grid(row = 1, pady = 5, sticky = tk.W)
+        self.image_before.grid(row = 1, pady = 5)
 
         ###
 
-        label_after = tk.Label(frame_after, text = 'After')
+        label_after = tk.Label(frame_after, text = 'Scuffed Image')
         label_after.grid(row = 0, pady = 5, sticky = tk.N)
 
         back_after = tk.Label(frame_after, image = photo_background)
@@ -101,7 +105,24 @@ class Application_SFD(tk.Frame):
         self.image_after = tk.Label(frame_after, image = photo_background)
 
         self.image_after.bind('<Button-1>', self.get_after_image)
-        self.image_after.grid(row = 1, pady = 5, sticky = tk.E)
+        self.image_after.grid(row = 1, pady = 5)
+
+        ###
+
+        label_grain = tk.Label(frame_grain, text = 'Resolution')
+        label_grain.grid(row = 0, column = 0, padx = 25, pady = 0, sticky = tk.E)
+
+        self.grain   = tk.IntVar()
+        self.grain.set(10)
+        slider_grain = tk.Scale(
+            frame_grain,
+            from_        = 2,
+            to           = 50,
+            orient       = tk.HORIZONTAL,
+            length       = 200,
+            variable     = self.grain
+        )
+        slider_grain.grid(row = 0, column = 1, pady = 0, sticky = tk.E)
 
         ###
 
@@ -117,8 +138,8 @@ class Application_SFD(tk.Frame):
             command = self.quit
         )
 
-        button_indiv_test.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = tk.W)
-        button_indiv_quit.grid(row = 0, column = 2, padx = 10, pady = 10, sticky = tk.E)
+        button_indiv_test.grid(row = 0, column = 0, padx = 100, pady = 10, sticky = tk.W)
+        button_indiv_quit.grid(row = 0, column = 1, padx = 100, pady = 10, sticky = tk.E)
 
         frame_before.grid(
             row = 0,
@@ -143,8 +164,17 @@ class Application_SFD(tk.Frame):
         #     pady = 100
         # )
 
-        frame_buttons.grid(
+        frame_grain.grid(
             row = 1,
+            column = 0,
+            columnspan = 3,
+            padx = 5,
+            pady = 5,
+            sticky = tk.S
+        )
+
+        frame_buttons.grid(
+            row = 2,
             column = 0,
             columnspan = 3,
             padx = 5,
@@ -211,17 +241,23 @@ class Application_SFD(tk.Frame):
             print 'before path: \"%s\"' % self.real_before
         except AttributeError:
             before = Image.new('L', self.size)
+            tkMessageBox.showwarning(self.ti, 'Before image required.')
             print 'no before image found.'
+            return None
 
         try:
             after = Image.open(self.real_after)
             print 'after path: \"%s\"' % self.real_after
         except AttributeError:
             after = Image.new('L', self.size)
+            tkMessageBox.showwarning(self.ti, 'After image required.')
             print 'no after image found.'
+            return None
+
+        print 'grain: %d' % self.grain.get()
 
         try:
-            data = find_scuff(before, after, 8)
+            data = find_scuff(before, after, self.grain.get())
             try:
                 pp.figure(1)
                 pp.pcolormesh(data['data']['rd'])
