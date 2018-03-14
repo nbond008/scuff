@@ -3,7 +3,9 @@ import tkFileDialog
 import tkMessageBox
 import ttk
 from PIL import Image, ImageTk, ImageDraw
-import matplotlib as pp
+import matplotlib.pyplot as pp
+
+from process.narrowbox import find_scuff
 
 # Scuff Finder Desktop
 
@@ -11,10 +13,13 @@ import matplotlib as pp
 #   Nick Bond and Gabe Waksman
 
 # Version:
-#   0.1
+#   0.11
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
+
+# TODO: get rid of the <do not localize> windows (what is up with those??)
+# Include scuff statistics, maybe as an additional popup
 
 class Application_SFD(tk.Frame):
     im_before = None
@@ -262,6 +267,8 @@ class Application_SFD(tk.Frame):
                 pp.figure(1)
                 pp.pcolormesh(data['data']['rd'])
                 pp.show()
+
+                # creates a bunch of extra windows/dialogs? am confuse
             except AttributeError:
                 print 'find_scuff failure.'
                 return None
