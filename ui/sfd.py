@@ -3,6 +3,7 @@ import tkFileDialog
 import tkMessageBox
 import ttk
 from PIL import Image, ImageTk, ImageDraw
+import matplotlib as mpl
 import matplotlib.pyplot as pp
 
 from process.narrowbox import find_scuff
@@ -16,22 +17,10 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 #   Nick Bond and Gabe Waksman
 
 # Version:
-<<<<<<< HEAD
-#   0.12
-=======
 #   0.20
->>>>>>> ui
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
-
-# TODO: get rid of the <do not localize> windows (what is up with those??)
-# Now it's giving me a weird error:
-'''
-    PyEval_RestoreThread: NULL tstate
-    Abort trap: 6
-'''
-# Look into this later??
 
 class Application_SFD(tk.Frame):
     im_before = None
@@ -276,12 +265,13 @@ class Application_SFD(tk.Frame):
         try:
             data = find_scuff(before, after, self.grain.get())
             try:
-                top = tk.Toplevel(self)
+                wg = tk.Toplevel(self)
+                ws = tk.Toplevel(self)
 
-                graph = Window_Graph(top)
+                graph = Window_Graph(wg)
                 graph.set_data(data)
 
-                stats = Window_Stats(top)
+                stats = Window_Stats(ws)
                 stats.set_data(data)
 
                 # pp.figure(1)
@@ -305,19 +295,46 @@ class Window_Graph(tk.Frame):
         self.populate()
 
     def populate(self):
-        self.fr = tk.Frame(self, width = 300, height = 200)
-        self.fr.grid(padx = 5, pady = 5)
+        self.canv = tk.Canvas(self, width = 480, height = 320)
+        self.canv.grid(row = 0, column = 0, padx = 10, pady = 10, sticky = tk.N)
+
+        button_quit = tk.Button(
+            self,
+            text    = 'OK',
+            command = self.master.destroy
+        )
+
+        button_quit.grid(row = 1, column = 0, padx = 50, pady = 10, sticky = tk.E)
+
+    # from matplotlib docs:
+    #      https://matplotlib.org/gallery/user_interfaces/embedding_in_tk_canvas_sgskip.html
+    def draw_figure(self, figure, loc=(0, 0)):
+        figure_canvas_agg = FigureCanvasAgg(figure)
+        figure_canvas_agg.draw()
+        figure_x, figure_y, figure_w, figure_h = figure.bbox.bounds
+        figure_w, figure_h = int(figure_w), int(figure_h)
+        photo = tk.PhotoImage(master=self.canv, width=figure_w, height=figure_h)
+
+        self.canv.create_image(loc[0] + figure_w/2, loc[1] + figure_h/2, image=photo)
+
+        tkagg.blit(photo, figure_canvas_agg.get_renderer()._renderer, colormode=2)
+
+        return photo
 
     def set_data(self, data):
         self.data = data
 
-        fig = mpl.figure.Figure(figsize=(2, 1))
+        fig = mpl.figure.Figure(figsize = (6, 4))
         ax = fig.add_axes([0, 0, 1, 1])
         ax.pcolormesh(data['x'], data['y'], data['data']['rd'])
+        # print 'nice'
+        ax.set_xlabel('x (inches)')
+        ax.set_ylabel('y (inches)')
+        # print 'nicer'
 
-        fig_x, fig_y = 100, 100
-        fig_photo = draw_figure(self.fr, fig, loc=(fig_x, fig_y))
-        fig_w, fig_h = fig_photo.width(), fig_photo.height()
+        self.fig_x, self.fig_y = 5, 5
+        self.fig_photo = self.draw_figure(fig, loc=(self.fig_x, self.fig_y))
+        self.fig_w, self.fig_h = self.fig_photo.width(), self.fig_photo.height()
 
 class Window_Stats(tk.Frame):
     ti   = 'Scuff Statistics'
