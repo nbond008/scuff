@@ -5,6 +5,9 @@ import ttk
 from PIL import Image, ImageTk, ImageDraw
 import matplotlib.pyplot as pp
 
+import matplotlib.backends.tkagg as tkagg
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+
 from process.bbox import BoundingBox
 
 # Scuff Finder Desktop
@@ -13,7 +16,7 @@ from process.bbox import BoundingBox
 #   Nick Bond and Gabe Waksman
 
 # Version:
-#   0.1
+#   0.20
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
@@ -270,18 +273,47 @@ class Application_SFD(tk.Frame):
             # data = find_scuff(before, after, self.grain.get())
             try:
                 top = tk.Toplevel(self)
+
+                graph = Window_Graph(top)
+                graph.set_data(data)
+
                 stats = Window_Stats(top)
                 stats.set_data(data)
 
-                pp.figure(1)
-                pp.pcolormesh(data['data']['rd'])
-                pp.show()
+                # pp.figure(1)
+                # pp.pcolormesh(data['data']['rd'])
+                # pp.show()
             except AttributeError:
                 print 'find_scuff failure.'
                 return None
         except NameError:
             print 'narrowbox not installed.'
             return None
+
+class Window_Graph(tk.Frame):
+    ti   = 'Scuff Finder Desktop'
+    data = None
+
+    def __init__(self, master = None):
+        tk.Frame.__init__(self, master)
+        self.master.title(self.ti)
+        self.grid()
+        self.populate()
+
+    def populate(self):
+        self.fr = tk.Frame(self, width = 300, height = 200)
+        self.fr.grid(padx = 5, pady = 5)
+
+    def set_data(self, data):
+        self.data = data
+
+        fig = mpl.figure.Figure(figsize=(2, 1))
+        ax = fig.add_axes([0, 0, 1, 1])
+        ax.pcolormesh(data['x'], data['y'], data['data']['rd'])
+
+        fig_x, fig_y = 100, 100
+        fig_photo = draw_figure(self.fr, fig, loc=(fig_x, fig_y))
+        fig_w, fig_h = fig_photo.width(), fig_photo.height()
 
 class Window_Stats(tk.Frame):
     ti   = 'Scuff Statistics'
