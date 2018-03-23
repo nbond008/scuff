@@ -274,7 +274,12 @@ class Application_SFD(tk.Frame):
                 stats.set_data(data)
 
                 pp.figure(1)
-                pp.pcolormesh(data['data']['rd'])
+                try:
+                    pp.pcolormesh(data['x'], data['y'], data['data']['rd'])
+                    pp.xlabel('x (inches)')
+                    pp.ylabel('y (inches)')
+                except TypeError:
+                    pp.pcolormesh(data['data']['rd'])
                 pp.show()
 
                 # creates a bunch of extra windows/dialogs? am confuse
@@ -351,32 +356,60 @@ class Window_Stats(tk.Frame):
         data_string = '\n'
 
         try:
-            data_string += 'Extrema:\n'
+            # data_string += 'Extrema:\n'
             if not self.data['extrema']:
-                data_string += 'No extrema found.'
+                raise TypeError()
             else:
-                data_string += 'Maximum: %0.3f\n' % self.data['extrema']['max_rd']
-                data_string += 'Minimum: %0.3f\n' % self.data['extrema']['min_rd']
+                data_string += 'Maximum intensity (normalized): %0.4f\n' % (
+                    self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd']))
+                # data_string += 'Minimum intensity (normalized): %0.4f\n' % (self.data['extrema']['min_rd'] / 255.0)
         except TypeError:
             data_string += 'No extrema found.'
         except KeyError:
             data_string += 'No <extrema> key found.'
 
-        data_string += '\n\n'
+        data_string += '\n'
 
         try:
-            bbox = self.data['boundingbox']
-            data_string += 'Scuff size:\n%d pixels' % bbox.get_area()
-        except AttributeError:
-            print bbox
-
-        data_string += '\n\n'
+            data_string += 'Image width: %0.2f inches\n' % self.data['real_width']
+        except KeyError:
+            print 'No <real_width> key found.'
 
         try:
-            grain = self.data['grain']
-            data_string += 'Resolution:\n%d pixels' % grain
-        except AttributeError:
-            print grain
+            data_string += 'Image height: %0.2f inches\n' % self.data['real_height']
+        except KeyError:
+            print 'No <real_height> key found.'
+
+        data_string += '\n'
+
+        try:
+            data_string += 'Scuff width: %0.2f inches\n' % self.data['scuff_width']
+        except KeyError:
+            print 'No <scuff_width> key found.'
+
+        try:
+            data_string += 'Scuff height: %0.2f inches\n' % self.data['scuff_height']
+        except KeyError:
+            print 'No <scuff_height> key found.'
+
+        try:
+            data_string += 'Scuff area: %0.2f square inches' % self.data['scuff_area']
+        except KeyError:
+            print 'No <scuff_area> key found.'
+
+        # try:
+        #     bbox = self.data['boundingbox']
+        #     data_string += 'Scuff size:\n%d pixels' % bbox.get_area()
+        # except AttributeError:
+        #     print bbox
+
+        # data_string += '\n\n'
+        #
+        # try:
+        #     grain = self.data['grain']
+        #     data_string += 'Resolution:\n%d pixels' % grain
+        # except AttributeError:
+        #     print grain
 
         self.data_stringvar.set(data_string)
 
