@@ -207,6 +207,29 @@ def find_scuff(before, after, grain, showing = False):
         'min_dy' : list_to_arr(np.flipud(rd_dy).transpose())[mindy]
     }
 
+    dpi_x = after.info['dpi'][0]
+    real_width  = after.width / float(dpi_x)
+    grain_width = grain / float(dpi_x)
+
+    dpi_y = after.info['dpi'][1]
+    real_height  = after.height / float(dpi_y)
+    grain_height = grain / float(dpi_y)
+
+    outputs['y'], outputs['x'] = np.mgrid[
+        slice(0, real_height, grain_height),
+        slice(0, real_width, grain_width)
+    ]
+
+    outputs['real_width']   = real_width
+    outputs['real_height']  = real_height
+    outputs['grain_width']  = grain_width
+    outputs['grain_height'] = grain_height
+
+    deriv_bounds = deriv_max.get_bounds()
+    outputs['scuff_width']  = (deriv_bounds[2] - deriv_bounds[0]) / float(dpi_x)
+    outputs['scuff_height'] = (deriv_bounds[3] - deriv_bounds[1]) / float(dpi_y)
+    outputs['scuff_area']   = deriv_max.get_area() / (float(dpi_x) * float(dpi_y))
+
     return outputs
 
 if __name__ == '__main__':
@@ -243,11 +266,30 @@ if __name__ == '__main__':
     print 'actual grain = %d' % data['grain']
 
     i = 0
-    for arr in data['data']:
-        pp.figure(i)
-        pp.title(arr)
-        pp.pcolormesh(data['data'][arr])
-        i += 1
+    # for arr in data['data']:
+
+    arr = 'rd'
+
+    pp.figure(i)
+    pp.title(arr)
+    # try:
+    pp.pcolormesh(data['x'], data['y'], data['data'][arr])
+    pp.xlabel('x (inches)')
+    pp.ylabel('y (inches)')
+        # except TypeError:
+        #     pass
+        #     i += 1
+
+    print '\nimage size: %0.2f\" x %0.2f\"\n' % (
+            data['real_width'],
+            data['real_height'],
+        )
+
+    print 'scuff width: %0.2f inches\nscuff height: %0.2f inches\nscuff area: %0.2f square inches\n' % (
+            data['scuff_width'],
+            data['scuff_height'],
+            data['scuff_area']
+        )
 
     pp.show()
 
