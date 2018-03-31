@@ -65,11 +65,14 @@ def find_scuff(before, after, grain, showing = False):
 
                     # rd[i][j] = (avg[0] + avg[1] + avg[2]) / 3
 
-                    rd[i][j] = math.sqrt(
-                                    math.pow(avg[0] - baseline[0], 2)
-                                    + math.pow(avg[1] - baseline[1], 2)
-                                    + math.pow(avg[2] - baseline[2], 2)
-                                )
+                    try:
+                        rd[i][j] = math.sqrt(
+                                        math.pow(avg[0] - baseline[0], 2)
+                                        + math.pow(avg[1] - baseline[1], 2)
+                                        + math.pow(avg[2] - baseline[2], 2)
+                                    )
+                    except IndexError:
+                        rd[i][j] = avg[0] - baseline[0]
                 except ZeroDivisionError:
                     print 'i = %d, j = %d' % (i, j)
             except AttributeError:
