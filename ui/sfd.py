@@ -466,12 +466,17 @@ class Window_Stats(tk.Frame):
         self.data_stringvar.set(data_string)
 
     def export(self):
+        with_or_against = 'with'
+        if ord(self.sample.split(' ')[-1]) > ord('E'):
+            with_or_against = 'against'
+
         f = open(self.export_path, 'a')
-        f.write('%s, %d, %0.4f, %0.2f' % (
+        f.write('%s, %d, %0.4f, %0.2f, %s' % (
             self.sample,
             self.data['grain'],
             (self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd'])),
-            self.data['scuff_area']
+            self.data['scuff_area'],
+            with_or_against
         ))
         f.close()
 
