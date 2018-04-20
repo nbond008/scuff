@@ -17,7 +17,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 #   Nick Bond and Gabe Waksman
 
 # Version:
-#   0.21
+#   0.3
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
@@ -272,7 +272,9 @@ class Application_SFD(tk.Frame):
                 graph.set_data(data)
 
                 stats = Window_Stats(ws)
-                stats.set_data(data)
+
+                tile_name = self.real_before.split('/')[-1].split('.')[0]
+                stats.set_data(data, tile_name)
 
                 # pp.figure(1)
                 # pp.pcolormesh(data['data']['rd'])
@@ -337,12 +339,15 @@ class Window_Graph(tk.Frame):
         self.fig_w, self.fig_h = self.fig_photo.width(), self.fig_photo.height()
 
 class Window_Stats(tk.Frame):
-    ti   = 'Scuff Statistics'
-    data = None
+    ti          = 'Scuff Statistics'
+    data        = None
+    sample      = ''
+    export_path = ''
 
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
         self.master.title(self.ti)
+        self.export_path = '/Users/nickbond/Desktop/test.csv'
         self.grid()
         self.populate()
 
@@ -396,8 +401,9 @@ class Window_Stats(tk.Frame):
             sticky = tk.S
         )
 
-    def set_data(self, data):
-        self.data = data
+    def set_data(self, data, sample):
+        self.data   = data
+        self.sample = sample
 
         data_string = '\n'
 
@@ -460,7 +466,14 @@ class Window_Stats(tk.Frame):
         self.data_stringvar.set(data_string)
 
     def export(self):
-        print self.data
+        f = open(self.export_path, 'a')
+        f.write('%s, %d, %0.4f, %0.2f' % (
+            self.sample,
+            self.data['grain'],
+            (self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd'])),
+            self.data['scuff_area']
+        ))
+        f.close()
 
 if __name__ == '__main__':
     app = Application_SFD()
