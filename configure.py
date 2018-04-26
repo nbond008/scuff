@@ -110,7 +110,7 @@ print '\n'
 
 try:
     print 'installing Scuff Finder Desktop...'
-    call(['pip', 'install', fr, '-i', url, '-t', to])
+    call(['pip', 'install', fr, '-i', url, '-t', to, '--upgrade'])
 except OSError:
     print 'installation failed. please email the authors at %s' % email
     exit(0)

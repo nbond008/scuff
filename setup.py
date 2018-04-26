@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name         = 'scuff',
-    version      = '0.3',
+    version      = '0.3.1',
     description  = 'The Innovation Express capstone project',
     url          = 'https://github.com/nbond008/scuff',
     author       = 'Nick Bond and Gabe Waksman',
