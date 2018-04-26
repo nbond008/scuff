@@ -15,7 +15,7 @@ except AttributeError:
 
 email = 'the.innovation.express@gmail.com'
 
-to  = './build
+to  = './build'
 fr  = '.'
 url = 'https://github.com/nbond008/scuff/tree/proto-1'
 
