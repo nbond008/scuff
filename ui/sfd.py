@@ -471,7 +471,7 @@ class Window_Stats(tk.Frame):
             with_or_against = 'against'
 
         f = open(self.export_path, 'a')
-        f.write('%s, %d, %0.4f, %0.2f, %s' % (
+        f.write('%s, %d, %0.4f, %0.2f, %s\n' % (
             self.sample,
             self.data['grain'],
             (self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd'])),
