@@ -4,8 +4,6 @@ from os import getcwd
 import re
 from subprocess import call
 
-# OSError
-
 required = re.compile(r'^2\.7\.[0-9]*$')
 try:
     print required.match(platform.python_version()).group()
@@ -18,6 +16,10 @@ email = 'the.innovation.express@gmail.com'
 to  = './build'
 fr  = '.'
 url = 'https://github.com/nbond008/scuff/tree/proto-1'
+pip = 'pip'
+
+if platform.system() == 'Windows':
+    pip = 'python -m pip'
 
 print 'checking for pip:'
 try:
