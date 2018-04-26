@@ -17,7 +17,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 #   Nick Bond and Gabe Waksman
 
 # Version:
-#   0.3
+#   0.3.1
 
 # Written for Shaw Industries Group, Inc. Plant RP Quality Control
 # Part of a Georgia Tech 2018 MSE Capstone II project
@@ -35,6 +35,8 @@ class Application_SFD(tk.Frame):
     size  = (240, 180)
     ti = 'Scuff Finder Desktop'
 
+    export_path = ''
+
     help_docs = '''
     Scuff Finder Desktop Help
         1. Click on the current image to bring up the file selection dialog.
@@ -46,6 +48,7 @@ class Application_SFD(tk.Frame):
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
         self.master.title(self.ti)
+        self.set_export_path()
         self.grid()
         self.populate()
 
@@ -275,6 +278,7 @@ class Application_SFD(tk.Frame):
 
                 tile_name = self.real_before.split('/')[-1].split('.')[0]
                 stats.set_data(data, tile_name)
+                stats.set_export_path(self.export_path)
 
                 # pp.figure(1)
                 # pp.pcolormesh(data['data']['rd'])
@@ -285,6 +289,15 @@ class Application_SFD(tk.Frame):
         except NameError:
             print 'narrowbox not installed.'
             return None
+
+    def set_export_path(self):
+        try:
+            ex = open('./.config.txt', 'w')
+            line = ex.readline().strip()
+            self.export_path = line
+            ex.close()
+        except IOError:
+            self.export_path = ''
 
 class Window_Graph(tk.Frame):
     ti   = 'Scuff Finder Desktop'
@@ -347,7 +360,7 @@ class Window_Stats(tk.Frame):
     def __init__(self, master = None):
         tk.Frame.__init__(self, master)
         self.master.title(self.ti)
-        self.export_path = '/Users/nickbond/Desktop/test.csv'
+        # self.export_path = '/Users/nickbond/Desktop/test.csv'
         self.grid()
         self.populate()
 
@@ -465,20 +478,27 @@ class Window_Stats(tk.Frame):
 
         self.data_stringvar.set(data_string)
 
-    def export(self):
-        with_or_against = 'with'
-        if ord(self.sample.split(' ')[-1]) > ord('E'):
-            with_or_against = 'against'
+    def set_export_path(self, path):
+        self.export_path = path
 
-        f = open(self.export_path, 'a')
-        f.write('%s, %d, %0.4f, %0.2f, %s\n' % (
-            self.sample,
-            self.data['grain'],
-            (self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd'])),
-            self.data['scuff_area'],
-            with_or_against
-        ))
-        f.close()
+    def export(self):
+        with_or_against = '' #for now, this has to be set manually
+        # if ord(self.sample.split(' ')[-1]) > ord('E'):
+        #     with_or_against = 'against'
+
+        try:
+            f = open(self.export_path, 'a')
+            f.write('%s, %d, %0.4f, %0.2f, %s\n' % (
+                self.sample,
+                self.data['grain'],
+                (self.data['extrema']['max_rd'] / (255.0 - self.data['extrema']['min_rd'])),
+                self.data['scuff_area'],
+                with_or_against
+            ))
+            f.close()
+        except IOError:
+            pass
+
 
 if __name__ == '__main__':
     app = Application_SFD()
